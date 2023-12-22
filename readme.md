@@ -3,11 +3,11 @@
 ## Everything is solved in either Rust or C++
 
 ### The problems yet unsolved:
-- 5 task1
-- 10 task1
-- 12 task1
-- 14 task1
-- 15
+- 5 task2
+- 10 task2
+- 12 task2
+- 14 task2
+- 15 task2
 - 16
 - 17
 - 18
