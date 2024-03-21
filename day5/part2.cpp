@@ -19,8 +19,7 @@ struct interval {
     }
 };
 
-std::vector<uint32_t> seeds;
-std::vector<bool> marker(std::numeric_limits<uint32_t>::max(), false);
+std::vector<std::pair<uint32_t, uint32_t>> seeds;
 
 void create_seeds() {
     std::string input;
@@ -32,19 +31,10 @@ void create_seeds() {
         uint32_t range_start, range_len;
         iss >> range_start >> range_len;
 
-        for (uint32_t i = 0; i < range_len; i++) {
-            marker[range_start + i] = true;
-        }
-        std::cout << "Inputted range with length = " << range_len << std::endl; 
+        seeds.push_back({range_start, range_start + range_len});
     }
 
     std::getline(fin, input);
-
-    for (int i = 0; i < marker.size(); i++) {
-        if (marker[i]) {
-            seeds.push_back(i);
-        }
-    }
 
     std::cout << "Made seeds" << std::endl;
 }
@@ -65,6 +55,7 @@ void input_transform() {
         iss >> tmp.start;
         iss >> tmp.end;
         iss >> tmp.length;
+        tmp.length--;
 
         transforms.back().push_back(tmp);
 
@@ -77,17 +68,33 @@ void input_transform() {
 }
 
 void do_transform(uint32_t index) {
+    std::vector<std::pair<uint32_t, uint32_t>> ans;
     for (auto& it : seeds) {
+        bool flag = false;
         for (const auto& transform : transforms[index]) {
-            if (!(transform.end <= it && it <= transform.end + transform.length)) {
+            if ((transform.end + transform.length <= it.first || it.second <= transform.end)) {
                 continue;
             }
 
-            it = it - transform.end + transform.start;
-            break;
+            if (transform.end <= it.first && it.second <= transform.end + transform.length) {
+                ans.push_back({it.first - transform.end + transform.start, it.second - transform.end + transform.start});
+                flag = true;
+                continue;
+            }
+
+            flag = true;
+            int left_boundary = std::max(transform.end, it.first);
+            int right_boundary = std::min(transform.end + transform.length, it.second);
+
+            ans.push_back({left_boundary - transform.end + transform.start, right_boundary - transform.end + transform.start});
+        }
+
+        if (!flag) {
+            ans.push_back(it);
         }
     }
 
+    seeds = ans;
     std::cout << "Did transform #" << index << std::endl;
 }
 
@@ -100,7 +107,18 @@ int main() {
 
     for (int i = 0; i < 7; i++) {
         do_transform(i);
+
+        std::for_each(seeds.begin(), seeds.end(), [](auto x) {
+            std::cout << x.first << " " << x.second << std::endl;
+        });
+        std::cout << std::endl;
     }
 
-    std::cout << *std::min_element(seeds.begin(), seeds.end());
+    uint32_t ans = std::numeric_limits<uint32_t>::max();
+
+    for (const auto& [first, second] : seeds) {
+        ans = std::min(ans, first);
+    }
+
+    std::cout << ans << std::endl;
 }

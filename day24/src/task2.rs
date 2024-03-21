@@ -1,6 +1,8 @@
 use std::fs;
 use std::ops::{Sub, SubAssign, Add};
 
+const eps: f64 = 1e-3;
+
 pub fn execute() {
     let binding = fs::read_to_string("txts/sample.txt").expect("Can't open file");
     let contents = binding.lines().collect::<Vec<&str>>();
@@ -50,7 +52,7 @@ impl Vector {
     fn cross_prod(&self, other: &Vector) -> Vector {
         let new_x = self.1 * other.2 - self.2 * other.1;
         let new_y = self.2 * other.0 - self.0 * other.2;
-        let new_z = self.1 * other.2 - self.2 * other.1;
+        let new_z = self.0 * other.1 - self.1 * other.0;
 
         Vector(new_x, new_y, new_z)
     }
@@ -66,13 +68,11 @@ impl Vector {
 
 impl PartialEq for Vector {
     fn eq(&self, other: &Self) -> bool {
-        (f64::abs(self.0 - other.0) < 1e-8) && (f64::abs(self.1 - other.1) < 1e-8) && (f64::abs(self.2 - other.2) < 1e-8)
+        (f64::abs(self.0 - other.0) < eps) && (f64::abs(self.1 - other.1) < eps) && (f64::abs(self.2 - other.2) < eps)
     }
 }
 
-impl Eq for Vector {
-    
-}
+impl Eq for Vector {}
 
 impl Sub for Vector {
     type Output = Vector;
@@ -104,7 +104,7 @@ impl Point {
     
     fn intersects(&self, other: &Point) -> bool {
         // p1 + c*v1 and p2 + d*v2 intersect if and only if (v1 \times v2) \cdot (p1 - p2) == 0
-        (self.velocity.cross_prod(&other.velocity)).dot_prod(&(self.position - other.position)) == 0
+        f64::abs(self.velocity.cross_prod(&other.velocity).dot_prod(&(self.position - other.position))) < eps
     }
 }
 
